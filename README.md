@@ -375,8 +375,8 @@ If you use this framework in your research, please cite:
 @article{cappelli2024precision,
   title={A Precision-Driven Evaluation Framework for Author Name Disambiguation},
   author={Cappelli, Francesca and Colavizza, Giovanni and Peroni, Silvio},
-  journal={Information Processing \& Management},
-  year={2024}
+  journal={},
+  year={}
 }
 ```
 
