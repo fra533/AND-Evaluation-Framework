@@ -346,7 +346,7 @@ Full results with detailed breakdown.
 
 ## Files
 
-- **evaluate_BOND_revised.py** – Main evaluator (production code)
+- **evaluate_BOND.py** – Main evaluator (production code)
 - **example_usage.py** – 4 complete usage scenarios
 - **example_predictions.json** – Test data (predictions)
 - **example_ground_truth.json** – Test data (ground truth)
@@ -384,17 +384,11 @@ If you use this framework in your research, please cite:
 
 ## References
 
-- Amigó, E., Gonzalo, J., Artiles, J., & Verdejo, F. (2009). A comparison of extrinsic clustering evaluation metrics and an internal evaluation measure. *Information Processing & Management*, 45(4), 422–430.
-
-- Bagga, A., & Baldwin, B. (1998). Entity-based cross-document coreferencing using the vector space model. In *Proceedings of the 36th Annual Meeting of the Association for Computational Linguistics* (pp. 40–45).
-
-- Kim, K., Sefid, A., Song, Y., & Giles, C. L. (2019). A large-scale author name disambiguation dataset with ground-truth annotation. *arXiv preprint arXiv:1904.12122*.
 
 ---
 
 ## License
 
-MIT License. See [LICENSE](LICENSE) file.
 
 ## Contact
 
@@ -402,5 +396,3 @@ MIT License. See [LICENSE](LICENSE) file.
 Department of Classical Philology and Italian Studies, University of Bologna  
 [Email / Affiliation]
 
-**Project**: Author Name Disambiguation for OpenCitations  
-**Funding**: EU Horizon Europe (GraspOS project)
