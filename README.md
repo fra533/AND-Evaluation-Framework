@@ -374,7 +374,7 @@ If you use this framework in your research, please cite:
 ```bibtex
 @article{cappelliEvalFram,
   title={A Precision-Driven Evaluation Framework for Author Name Disambiguation},
-  author={Cappelli, Francesca and Colavizza, Giovanni and Peroni, Silvio},
+  author={Cappelli, Francesca; Colavizza, Giovanni; Peroni, Silvio},
   journal={},
   year={}
 }
