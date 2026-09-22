@@ -1,0 +1,20 @@
+{
+  "John Smith": [
+    ["arxiv_001", "scholar_002"],
+    ["arxiv_003"],
+    ["journal_004", "journal_005", "preprint_006"]
+  ],
+  "Jane Doe": [
+    ["pub_001", "pub_002"],
+    ["pub_003", "pub_004"]
+  ],
+  "Alice Johnson": [
+    ["paper_001", "paper_002", "paper_003"],
+    ["paper_004"]
+  ],
+  "Bob Wilson": [
+    ["article_001", "article_002"],
+    ["article_003"],
+    ["article_004"]
+  ]
+}
