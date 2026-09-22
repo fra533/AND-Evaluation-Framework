@@ -372,7 +372,7 @@ Full results with detailed breakdown.
 If you use this framework in your research, please cite:
 
 ```bibtex
-@article{cappelli2024precision,
+@article{cappelliEvalFram,
   title={A Precision-Driven Evaluation Framework for Author Name Disambiguation},
   author={Cappelli, Francesca and Colavizza, Giovanni and Peroni, Silvio},
   journal={},
