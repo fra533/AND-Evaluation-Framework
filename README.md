@@ -174,6 +174,28 @@ File is named: `{EMBEDDING}_{DATASET}_{EXPERIMENT}_{TIMESTAMP}.xlsx`
 
 ## Metrics Explained
 
+### **Pairwise-F** — Link-Based Consistency
+
+Counts publication pairs: are they co-clustered correctly?
+- **Precision**: Fraction of predicted links (co-clustered pairs) that are true
+- **Recall**: Fraction of true links that were predicted
+- **Issue**: Quadratically sensitive to cluster size (large author lists dominate)
+
+### **B³ (Bagga & Baldwin, 2009)** — Instance-Level Quality
+
+For each publication, measures overlap between predicted and true cluster:
+- **Precision**: Average purity of each paper's predicted cluster
+- **Recall**: Average completeness of each paper's true author cluster
+- **Advantage**: Robust to cluster size imbalance
+- **Most reliable aggregate metric in AND**
+
+### **K-metric** — Asymmetric Penalties
+
+$$K = (1 - B³\text{-Precision}) \times (1 - B³\text{-Recall})$$
+
+Emphasizes both purity and completeness simultaneously.
+
+
 ### **Lumping Error (LE)** — Cluster Purity
 
 $$\text{LE} = \frac{1}{|C|} \sum_{C \in C'} \frac{\max(0, g(C) - 1)}{g(C)}$$
@@ -199,27 +221,6 @@ $$\text{SE} = \frac{1}{|T|} \sum_{T \in T'} \frac{\max(0, p(T) - 1)}{p(T)}$$
 **Interpretation**:
 - SE = 0.10 → Each author's publications are minimally fragmented
 - SE = 0.40 → Many authors split across multiple clusters
-
-### **Pairwise-F** — Link-Based Consistency
-
-Counts publication pairs: are they co-clustered correctly?
-- **Precision**: Fraction of predicted links (co-clustered pairs) that are true
-- **Recall**: Fraction of true links that were predicted
-- **Issue**: Quadratically sensitive to cluster size (large author lists dominate)
-
-### **B³ (Bagga & Baldwin, 2009)** — Instance-Level Quality
-
-For each publication, measures overlap between predicted and true cluster:
-- **Precision**: Average purity of each paper's predicted cluster
-- **Recall**: Average completeness of each paper's true author cluster
-- **Advantage**: Robust to cluster size imbalance
-- **Most reliable aggregate metric in AND**
-
-### **K-metric** — Asymmetric Penalties
-
-$$K = (1 - B³\text{-Precision}) \times (1 - B³\text{-Recall})$$
-
-Emphasizes both purity and completeness simultaneously.
 
 ---
 
