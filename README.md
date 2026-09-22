@@ -1,624 +1,405 @@
-## \#AND Evaluation Framework
+**A Precision-Driven Evaluation Framework for Author Name Disambiguation**
 
+This is an open-source Python implementation of the evaluation framework presented in *"A Precision-Driven Evaluation Framework for Author Name Disambiguation"* (Cappelli, Colavizza, Peroni). It combines standard clustering metrics (Pairwise-F, B³) with structural error decomposition (Lumping Error, Splitting Error) to provide a comprehensive, interpretable assessment of Author Name Disambiguation (AND) systems.
 
+## Why This Framework?
 
-Multi-metric evaluation framework for \*\*Author Name Disambiguation (AND)\*\* systems, implementing clustering metrics as per Kim et al. (2019).
+Standard clustering metrics (Pairwise-F, B³) evaluate aggregate quality but **don't distinguish between two qualitatively different failure modes**:
 
+- **Lumping**: Merging publications from *different* authors into one cluster (false positive)
+  - Direct contamination of author profiles
+  - Hard to correct downstream
+  - High cost in bibliographic applications
 
+- **Splitting**: Fragmenting a *single* author's publications across multiple clusters (false negative)  
+  - Incomplete author profiles
+  - More recoverable downstream
+  - Lower cost in practice
 
-Designed for BOND and compatible AND systems. Supports dynamic alignment of predictions with ground-truth, making it suitable for partial datasets (e.g., OpenCitations where ground-truth may be incomplete).
+This framework makes this distinction **explicit through cluster-level metrics** and adopts a **precision-first stance**: cluster purity is prioritized over recall, reflecting real-world consequences of errors in bibliographic systems.
 
+---
 
+## Framework Overview
 
-\## Features
+The framework evaluates AND systems through **four integrated components**:
 
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    INPUT                                        │
+│  Predicted clusters (from AND system) vs. Ground-truth clusters │
+└─────────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────────┐
+│  1. Pairwise Metrics    (link-based, quadratic sensitivity)    │
+│  2. B³ Metrics           (instance-level, size-robust)          │
+│  3. Structural Errors    (cluster-level, interpretable)         │
+│     • Lumping Error (LE) → cluster purity                       │
+│     • Splitting Error (SE) → author completeness               │
+│  4. Composite Score      (0.3 PW + 0.5 B³ + 0.2 Struct)        │
+└─────────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────────┐
+│  OUTPUT: Comprehensive metrics + model selection guidance       │
+└─────────────────────────────────────────────────────────────────┘
+```
 
+---
 
-\- \*\*Pairwise-F\*\*: Link-based precision/recall for clustering
-
-\- \*\*B³ (Bagga \& Baldwin, 2009)\*\*: Instance-level clustering metrics
-
-\- \*\*Structural Errors\*\*: Lumping Error (false positives) and Splitting Error (false negatives)
-
-\- \*\*K-metric\*\*: Asymmetric penalties for errors (Kim et al., 2019)
-
-\- \*\*Composite Score\*\*: Weighted average combining multiple metrics
-
-\- \*\*Dynamic Alignment\*\*: Filters ground-truth to only papers present in predictions, avoiding unfair Recall penalties for missing data
-
-\- \*\*Excel Reports\*\*: Automated export of results with experiment metadata
-
-\- \*\*Logging\*\*: Comprehensive logging for debugging and auditing
-
-
-
-\## Installation
-
-
+## Installation
 
 ```bash
-
-pip install pandas
-
+git clone <repository-url>
+cd evaluate_BOND
+pip install -r requirements.txt
 ```
 
+**Requirements**:
+- Python ≥ 3.9
+- pandas ≥ 1.3.0
+- openpyxl ≥ 3.6.0 (optional, for Excel export)
 
+---
 
-\## Data Format
+## Input Format
 
-
-
-\### Input JSON
-
-
-
-Both prediction and ground-truth files use the same format:
-
-
+Both predictions and ground-truth use the same JSON structure:
 
 ```json
-
 {
-
-&#x20; "author\_name\_1": \[
-
-&#x20;   \["paper\_id\_1", "paper\_id\_2"],
-
-&#x20;   \["paper\_id\_3"],
-
-&#x20;   \["paper\_id\_4", "paper\_id\_5", "paper\_id\_6"]
-
-&#x20; ],
-
-&#x20; "author\_name\_2": \[
-
-&#x20;   \["paper\_id\_7", "paper\_id\_8"],
-
-&#x20;   \["paper\_id\_9"]
-
-&#x20; ]
-
+  "author_name_1": [
+    ["paper_id_1", "paper_id_2"],
+    ["paper_id_3"],
+    ["paper_id_4", "paper_id_5"]
+  ],
+  "author_name_2": [
+    ["paper_id_6", "paper_id_7", "paper_id_8"]
+  ]
 }
-
 ```
 
+- **Top level**: Author name (string)
+- **Value**: List of clusters (each cluster is a list of paper IDs)
 
-
-\- \*\*Top level\*\*: Author name → list of predicted clusters
-
-\- \*\*Cluster\*\*: List of paper IDs that belong together (represent one author)
-
-
-
-\### Example
-
-
-
+**Example** (John Smith disambiguated into 3 clusters):
 ```json
-
 {
-
-&#x20; "John Smith": \[
-
-&#x20;   \["arxiv\_001", "scholar\_002"],
-
-&#x20;   \["arxiv\_003"],
-
-&#x20;   \["journal\_004", "journal\_005"]
-
-&#x20; ],
-
-&#x20; "Jane Doe": \[
-
-&#x20;   \["pub\_001", "pub\_002", "pub\_003"]
-
-&#x20; ]
-
+  "John Smith": [
+    ["arxiv_001", "scholar_002"],    # Cluster 1: John Smith (physicist)
+    ["arxiv_003"],                    # Cluster 2: John Smith (mathematician, singleton)
+    ["journal_004", "journal_005"]    # Cluster 3: John Smith (biologist)
+  ]
 }
-
 ```
 
+> **For partial datasets** (e.g., OpenCitations): The evaluator automatically filters ground-truth to only papers present in predictions, avoiding unfair Recall penalties for missing data.
 
+---
 
-\## Usage
+## Usage
 
-
-
-\### Basic Evaluation
-
-
+### Basic Evaluation
 
 ```python
-
-from evaluate\_BOND import MultiMetricEvaluator, save\_json
-
-
-
-\# Initialize evaluator
+from evaluate_BOND import MultiMetricEvaluator, save_json
 
 evaluator = MultiMetricEvaluator(
-
-&#x20;   predictions\_file="predictions.json",
-
-&#x20;   ground\_truth\_file="ground\_truth.json",
-
-&#x20;   verbose=True
-
+    predictions_file="predictions.json",
+    ground_truth_file="ground_truth.json",
+    verbose=True  # Print summary after evaluation
 )
-
-
-
-\# Run evaluation
 
 results = evaluator.evaluate()
-
-
-
-\# Save results
-
-save\_json(results, "results.json")
-
+save_json(results, "results.json")
 ```
 
+**Output** (printed):
+```
+======================================================================
+📊 AUTHOR NAME DISAMBIGUATION - MULTI-METRIC EVALUATION
+======================================================================
 
+[DATASET STATISTICS]
+   Total names:       1500
+   Total instances:   12345
+   Perfect matches:   1289
 
-\### Export to Excel
+[PAIRWISE-F (Link-based)]
+   Precision: 0.8523
+   Recall:    0.7891
+   F1:        0.8187
 
+[B³ (Bagga & Baldwin, 2009)]
+   Precision: 0.8821
+   Recall:    0.8145
+   F1:        0.8468
 
+[STRUCTURAL ERRORS]
+   Lumping Error:    0.0452
+   Splitting Error:  0.0876
+   Struct Score:     0.9336
+
+[COMPOSITE SCORE (0.3 PW + 0.5 B³ + 0.2 Struct)]
+   0.8512
+======================================================================
+```
+
+### Export to Excel
 
 ```python
-
-\# Simple export
-
-evaluator.save\_to\_excel(
-
-&#x20;   base\_output\_path="reports",
-
-&#x20;   experiment\_name="Exp1"
-
-)
-
-
-
-\# With experiment metadata
-
 import argparse
 
+# Simple export
+evaluator.save_to_excel(base_output_path="reports", experiment_name="Exp1")
 
-
+# With experiment metadata
 args = argparse.Namespace(
-
-&#x20;   emb\_type="SBERT",
-
-&#x20;   save\_path="./datasets/OC",
-
-&#x20;   db\_eps=0.5,
-
-&#x20;   db\_min=2,
-
-&#x20;   use\_citations=True,
-
-&#x20;   rel\_on="cosine"
-
+    emb_type="SBERT",
+    save_path="./datasets/OC",
+    db_eps=0.5,
+    db_min=2,
+    use_citations=True
 )
 
-
-
-evaluator.save\_to\_excel(
-
-&#x20;   base\_output\_path="reports",
-
-&#x20;   experiment\_name="Exp1",
-
-&#x20;   args=args
-
+report_path = evaluator.save_to_excel(
+    base_output_path="reports",
+    experiment_name="SBERT_DBSCAN_v1",
+    args=args
 )
-
 ```
 
+File is named: `{EMBEDDING}_{DATASET}_{EXPERIMENT}_{TIMESTAMP}.xlsx`
 
+---
 
-File is named: `{EMBEDDING}\_{DATASET}\_{EXPERIMENT}\_{TIMESTAMP}.xlsx`
+## Metrics Explained
 
+### **Lumping Error (LE)** — Cluster Purity
 
+$$\text{LE} = \frac{1}{|C|} \sum_{C \in C'} \frac{\max(0, g(C) - 1)}{g(C)}$$
 
-\### Command-line Usage
+- **Range**: [0, 1]
+- **Meaning**: Fraction of ground-truth authors incorrectly mixed within each predicted cluster
+- **0 = Perfect**: Every predicted cluster contains publications from only one real author
+- **1 = Worst**: Every predicted cluster mixes many different authors
 
+**Interpretation**:
+- LE = 0.05 → Only 5% of predicted clusters are contaminated with wrong authors
+- LE = 0.20 → Significant purity issue; clusters mix real authors too much
 
+### **Splitting Error (SE)** — Author Completeness
+
+$$\text{SE} = \frac{1}{|T|} \sum_{T \in T'} \frac{\max(0, p(T) - 1)}{p(T)}$$
+
+- **Range**: [0, 1]
+- **Meaning**: Fraction of predicted clusters needed to cover each true author
+- **0 = Perfect**: Every real author is contained in exactly one cluster
+- **1 = Worst**: Every real author is fragmented across many clusters
+
+**Interpretation**:
+- SE = 0.10 → Each author's publications are minimally fragmented
+- SE = 0.40 → Many authors split across multiple clusters
+
+### **Pairwise-F** — Link-Based Consistency
+
+Counts publication pairs: are they co-clustered correctly?
+- **Precision**: Fraction of predicted links (co-clustered pairs) that are true
+- **Recall**: Fraction of true links that were predicted
+- **Issue**: Quadratically sensitive to cluster size (large author lists dominate)
+
+### **B³ (Bagga & Baldwin, 2009)** — Instance-Level Quality
+
+For each publication, measures overlap between predicted and true cluster:
+- **Precision**: Average purity of each paper's predicted cluster
+- **Recall**: Average completeness of each paper's true author cluster
+- **Advantage**: Robust to cluster size imbalance
+- **Most reliable aggregate metric in AND**
+
+### **K-metric** — Asymmetric Penalties
+
+$$K = (1 - B³\text{-Precision}) \times (1 - B³\text{-Recall})$$
+
+Emphasizes both purity and completeness simultaneously.
+
+---
+
+## Results Dictionary
+
+```python
+results = evaluator.evaluate()
+
+# Structure:
+{
+  "pairwise": {
+    "precision": 0.8523,
+    "recall": 0.7891,
+    "f1": 0.8187
+  },
+  "b3": {
+    "precision": 0.8821,  # ← Most important for AND
+    "recall": 0.8145,
+    "f1": 0.8468
+  },
+  "k_metric": {
+    "aap": 0.1179,  # Asymmetric Artifact Penalty
+    "acp": 0.1855,  # Asymmetric Cluster Penalty
+    "k": 0.8056
+  },
+  "structural": {
+    "lumping_error": 0.0452,   # ← Watch this closely
+    "splitting_error": 0.0876,
+    "score": 0.9336
+  },
+  "composite_score": 0.8512  # ← For model ranking
+}
+```
+
+---
+
+## Model Selection Strategy
+
+**⚠️ Do NOT use Composite Score alone for model selection.**
+
+Follow this **three-step procedure** (precision-first stance):
+
+```
+Step 1: Rank by Pairwise F1
+    └─ Filter candidates with F1 < threshold
+
+Step 2: Among remaining, rank by B³ Precision
+    └─ Prioritize cluster purity (lumping avoidance)
+    └─ Filter candidates with B³-P < threshold
+
+Step 3: Among remaining, inspect Lumping Error (LE)
+    └─ Final tiebreaker: pick lowest LE
+    └─ Only then use Composite Score if needed
+```
+
+**Why?** The Composite Score uses symmetric weighting of LE and SE (both count equally). But in bibliographic applications, **lumping (false positives) is costlier than splitting (false negatives)**. Step 3 explicitly prioritizes purity.
+
+---
+
+## Interpreting Composite Score
+
+| Score | Interpretation | Action |
+|-------|---|---|
+| **0.90–1.00** | Excellent | Ready for production |
+| **0.85–0.90** | Very good | Accept with minor review |
+| **0.80–0.85** | Good | Acceptable but optimize |
+| **0.70–0.80** | Fair | Needs adjustment |
+| **< 0.70** | Poor | Redesign required |
+
+**But remember**: A small gap in Composite Score can hide a significant difference in LE. Always check Step 1–3 above.
+
+---
+
+## Dynamic Alignment (for Partial Datasets)
+
+When evaluating AND systems on partial ground-truth (e.g., OpenCitations, where only indexed papers have annotations):
+
+```python
+# Internally, the framework:
+# 1. Collects all papers present in predictions
+# 2. Filters ground-truth to ONLY those papers
+# 3. Evaluates on aligned subset
+# 4. Result: Recall not penalized for unavailable data
+```
+
+This is **automatic**—just pass your files and it works correctly.
+
+---
+
+## Examples
+
+### Example 1: Basic Evaluation
 
 ```bash
-
-python evaluate\_BOND.py
-
+python example_usage.py --example 1
 ```
 
+### Example 2: With Metadata + Excel Export
 
-
-Edit the `if \_\_name\_\_ == "\_\_main\_\_"` block to customize input/output paths.
-
-
-
-\## Output Metrics
-
-
-
-\### Pairwise-F
-
-Link-based clustering metrics:
-
-\- \*\*Precision\*\*: Fraction of predicted links that are correct
-
-\- \*\*Recall\*\*: Fraction of true links that were predicted
-
-\- \*\*F1\*\*: Harmonic mean
-
-
-
-\### B³ (Bagga \& Baldwin, 2009)
-
-Instance-level metrics treating each paper as an evaluation unit:
-
-\- \*\*Precision\*\*: Average overlap between predicted and true cluster for each paper
-
-\- \*\*Recall\*\*: Average overlap from true cluster perspective
-
-\- \*\*F1\*\*: Harmonic mean
-
-
-
-\### Structural Errors
-
-
-
-\*\*Lumping Error\*\* (LE): False positives in clustering
-
-\- Range: \[0, 1]
-
-\- \*\*0\*\*: Every predicted cluster is pure (contains only one true author)
-
-\- \*\*1\*\*: Every predicted cluster mixes many authors
-
-
-
-$$\\text{LE} = \\frac{1}{|C|} \\sum\_{C \\in C'} \\frac{\\max(0, g(C) - 1)}{g(C)}$$
-
-
-
-where $g(C)$ = number of distinct ground-truth authors in predicted cluster $C$.
-
-
-
-\*\*Splitting Error\*\* (SE): False negatives in clustering
-
-\- Range: \[0, 1]
-
-\- \*\*0\*\*: Every true author appears in exactly one cluster
-
-\- \*\*1\*\*: Every true author is split across many clusters
-
-
-
-$$\\text{SE} = \\frac{1}{|T|} \\sum\_{T \\in T'} \\frac{\\max(0, p(T) - 1)}{p(T)}$$
-
-
-
-where $p(T)$ = number of predicted clusters intersecting true author $T$.
-
-
-
-\### K-metric (Kim et al., 2019)
-
-
-
-Combines B³ scores with asymmetric penalties:
-
-\- \*\*AAP\*\* (Asymmetric Artifact Penalty): $1 - B³\\text{-Precision}$
-
-\- \*\*ACP\*\* (Asymmetric Cluster Penalty): $1 - B³\\text{-Recall}$
-
-\- \*\*K\*\*: $\\text{AAP} \\times \\text{ACP}$
-
-
-
-Higher K is better; K ∈ \[0, 1].
-
-
-
-\### Composite Score
-
-
-
-Weighted average combining all metrics:
-
-
-
-$$S\_{\\text{composite}} = 0.3 \\times \\text{PW-F1} + 0.5 \\times \\text{B³-F1} + 0.2 \\times S\_{\\text{struct}}$$
-
-
-
-where $S\_{\\text{struct}} = 1 - \\frac{\\text{LE} + \\text{SE}}{2}$ (structural score).
-
-
-
-\## Results Dictionary
-
-
-
-```python
-
-{
-
-&#x20; "pairwise": {
-
-&#x20;   "precision": 0.85,
-
-&#x20;   "recall": 0.80,
-
-&#x20;   "f1": 0.8235
-
-&#x20; },
-
-&#x20; "b3": {
-
-&#x20;   "precision": 0.88,
-
-&#x20;   "recall": 0.82,
-
-&#x20;   "f1": 0.85
-
-&#x20; },
-
-&#x20; "k\_metric": {
-
-&#x20;   "aap": 0.12,
-
-&#x20;   "acp": 0.18,
-
-&#x20;   "k": 0.9784
-
-&#x20; },
-
-&#x20; "structural": {
-
-&#x20;   "lumping\_error": 0.05,
-
-&#x20;   "splitting\_error": 0.10,
-
-&#x20;   "score": 0.925
-
-&#x20; },
-
-&#x20; "composite\_score": 0.8461
-
-}
-
+```bash
+python example_usage.py --example 2
 ```
 
+Generates Excel report with experiment parameters.
 
+### Example 3: Batch Comparison (Multiple Experiments)
 
-\## Algorithm: Dynamic Alignment
-
-
-
-For partial datasets (e.g., OpenCitations, where ground-truth is only available for indexed papers):
-
-
-
-1\. \*\*Collect available papers\*\*: All papers in predicted clusters
-
-2\. \*\*Filter ground-truth\*\*: Remove papers not in predictions
-
-3\. \*\*Align clusters\*\*: Evaluate only on the common subset
-
-4\. \*\*Benefit\*\*: Recall is not penalized for papers with no ground-truth label
-
-
-
-This prevents unfair metric scores when evaluating against incomplete ground-truth.
-
-
-
-\## Interpreting Results
-
-
-
-| Score | Interpretation |
-
-|-------|---|
-
-| \*\*0.9–1.0\*\* | Excellent disambiguation; very few errors |
-
-| \*\*0.8–0.9\*\* | Good; acceptable for most applications |
-
-| \*\*0.7–0.8\*\* | Fair; noticeable errors but usable |
-
-| \*\*<0.7\*\* | Poor; significant lumping/splitting errors |
-
-
-
-\*\*Example:\*\*
-
-\- High Lumping Error (LE > 0.3) → predicted clusters mix too many authors → reduce clustering threshold (merge fewer papers)
-
-\- High Splitting Error (SE > 0.3) → true authors too fragmented → increase clustering threshold (merge more papers)
-
-
-
-\## References
-
-
-
-\- Amigó, E., Gonzalo, J., Artiles, J., \& Verdejo, F. (2009).
-
-&#x20; \*A comparison of extrinsic clustering evaluation metrics and an internal evaluation measure.\*
-
-&#x20; Information Processing \& Management, 45(4), 422-430.
-
-
-
-\- Bagga, A., \& Baldwin, B. (1998).
-
-&#x20; \*Entity-based cross-document coreferencing using the vector space model.\*
-
-&#x20; In Proceedings of the 36th Annual Meeting of the Association for Computational Linguistics.
-
-
-
-\- Kim, K., et al. (2019).
-
-&#x20; \*A large-scale author name disambiguation dataset with ground-truth annotation.\*
-
-&#x20; arXiv preprint arXiv:1904.12122.
-
-
-
-\## Example: Full Pipeline
-
-
-
-```python
-
-from evaluate\_BOND import MultiMetricEvaluator, save\_json, load\_json
-
-import argparse
-
-
-
-\# Load your AND system's predictions
-
-predictions = load\_json("path/to/predictions.json")
-
-ground\_truth = load\_json("path/to/ground\_truth.json")
-
-
-
-\# Create evaluator
-
-evaluator = MultiMetricEvaluator(
-
-&#x20;   predictions\_file="predictions.json",
-
-&#x20;   ground\_truth\_file="ground\_truth.json",
-
-&#x20;   verbose=True
-
-)
-
-
-
-\# Run evaluation
-
-results = evaluator.evaluate()
-
-
-
-\# Print detailed results
-
-evaluator.print\_results(detailed=True)
-
-
-
-\# Save to JSON
-
-save\_json(results, "evaluation\_results.json")
-
-
-
-\# Export to Excel
-
-args = argparse.Namespace(
-
-&#x20;   emb\_type="SBERT",
-
-&#x20;   save\_path="./oc\_dataset",
-
-&#x20;   db\_eps=0.5,
-
-&#x20;   db\_min=2
-
-)
-
-report\_path = evaluator.save\_to\_excel(
-
-&#x20;   base\_output\_path="reports",
-
-&#x20;   experiment\_name="SBERT\_DBSCAN",
-
-&#x20;   args=args
-
-)
-
-print(f"Results saved to: {report\_path}")
-
+```bash
+python example_usage.py --example 3
 ```
 
+Runs multiple configs, prints comparison table, exports all to Excel.
 
+### Example 4: Detailed Analysis
 
-\## Files
+```bash
+python example_usage.py --example 4
+```
 
+Full results with detailed breakdown.
 
+---
 
-\- `evaluate\_BOND.py` – Main evaluator class
+## Files
 
-\- `README.md` – This file
+- **evaluate_BOND_revised.py** – Main evaluator (production code)
+- **example_usage.py** – 4 complete usage scenarios
+- **example_predictions.json** – Test data (predictions)
+- **example_ground_truth.json** – Test data (ground truth)
+- **requirements.txt** – Dependencies
+- **LICENSE** – MIT license
+- **.gitignore** – Standard Python ignores
+- **README.md** – This file
 
-\- `requirements.txt` – Python dependencies
+---
 
+## Known Limitations
 
+1. **Composite Score weighting**: The 0.3/0.5/0.2 weights reflect a precision-first stance. If you prioritize completeness equally, adjust γ parameter and re-inspect LE directly.
 
-\## License
+2. **Macro vs. Micro averaging**: Results use macro-averaging (average error per name). In datasets with heavy-tailed name-ambiguity distributions, a few very-ambiguous names may dominate micro-averaged scores. For detailed analysis, inspect per-name breakdowns.
 
+3. **Large cluster bias in Pairwise-F**: Pairwise metrics still over-weight large author clusters (quadratic sensitivity). Trust B³ and LE/SE for more reliable signals.
 
+---
 
-MIT
+## Citation
 
-
-
-\## Citation
-
-
-
-If you use this evaluator in your research, please cite:
-
-
+If you use this framework in your research, please cite:
 
 ```bibtex
-
-@software{evaluate\_BOND,
-
-&#x20; author = {Cappelli, Francesca and Peroni, Silvio and Colavizza, Giovanni},
-
-&#x20; title = {Author Name Disambiguation Evaluator for BOND},
-
-&#x20; url = {https://github.com/your-repo/evaluate\_BOND},
-
-&#x20; year = {2024}
-
+@article{cappelli2024precision,
+  title={A Precision-Driven Evaluation Framework for Author Name Disambiguation},
+  author={Cappelli, Francesca and Colavizza, Giovanni and Peroni, Silvio},
+  journal={Information Processing \& Management},
+  year={2024}
 }
-
 ```
 
+---
 
+## References
 
-\## Issues \& Contributions
+- Amigó, E., Gonzalo, J., Artiles, J., & Verdejo, F. (2009). A comparison of extrinsic clustering evaluation metrics and an internal evaluation measure. *Information Processing & Management*, 45(4), 422–430.
 
+- Bagga, A., & Baldwin, B. (1998). Entity-based cross-document coreferencing using the vector space model. In *Proceedings of the 36th Annual Meeting of the Association for Computational Linguistics* (pp. 40–45).
 
+- Kim, K., Sefid, A., Song, Y., & Giles, C. L. (2019). A large-scale author name disambiguation dataset with ground-truth annotation. *arXiv preprint arXiv:1904.12122*.
 
-For bug reports or feature requests, open an issue on the repository.
+---
 
+## License
 
+MIT License. See [LICENSE](LICENSE) file.
 
-Pull requests are welcome; please include tests and update documentation.
+## Contact
 
+**Francesca Cappelli**  
+Department of Classical Philology and Italian Studies, University of Bologna  
+[Email / Affiliation]
 
-
-\---
-
-
-
-\*\*Author\*\*: Francesca Cappelli  
-
-\*\*Affiliation\*\*: University of Bologna, Department of Classical Philology and Italian Studies  
-
-\*\*Project\*\*: Author Name Disambiguation for OpenCitations (GraspOS EU Horizon Europe)
-
+**Project**: Author Name Disambiguation for OpenCitations  
+**Funding**: EU Horizon Europe (GraspOS project)
