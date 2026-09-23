@@ -2,7 +2,7 @@
 Author Name Disambiguation Evaluator
 
 Multi-metric evaluation framework implementing clustering metrics (Pairwise-F, B³)
-and structural error measures (Lumping Error, Splitting Error) as per Kim et al. (2019).
+and structural error measures (Lumping Error, Splitting Error).
 
 Supports dynamic alignment of predictions with ground-truth for partial datasets
 (e.g., when ground-truth is available only for papers present in OpenCitations).
@@ -15,7 +15,7 @@ import json
 import logging
 from pathlib import Path
 from datetime import datetime
-from typing import Any, Dict, List, Set, Tuple
+from typing import Any, Dict, List, Set
 
 import pandas as pd
 
@@ -513,17 +513,8 @@ class MultiMetricEvaluator:
 
         return str(full_path)
 
-    def save_results(self, path: str | Path) -> None:
-        """
-        Save evaluation results to JSON file.
-
-        Args:
-            path: Output file path.
-        """
-        save_json(self.results, path)
-
     # =====================================================
-    # Private Helpers
+    # Helpers
     # =====================================================
 
     def _prepare_truth(

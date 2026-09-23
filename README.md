@@ -1,6 +1,6 @@
 # **A Precision-Driven Evaluation Framework for Author Name Disambiguation**
 
-This is an open-source Python implementation of the evaluation framework presented in *"A Precision-Driven Evaluation Framework for Author Name Disambiguation"* (Cappelli, Colavizza, Peroni). It combines standard clustering metrics (Pairwise-F, B³) with structural error decomposition (Lumping Error, Splitting Error) to provide a comprehensive, interpretable assessment of Author Name Disambiguation (AND) systems.
+This is an open-source Python implementation of the evaluation framework presented in *"A precision-driven evaluation protocol for Author Name Disambiguation"* (Cappelli, Colavizza, Peroni). It combines standard clustering metrics (Pairwise-F, B³) with structural error decomposition (Lumping Error, Splitting Error) to provide a comprehensive, interpretable assessment of Author Name Disambiguation (AND) systems.
 
 ## Why This Framework?
 
