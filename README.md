@@ -339,7 +339,7 @@ Full results with detailed breakdown.
 - **example_predictions.json** – Test data (predictions)
 - **example_ground_truth.json** – Test data (ground truth)
 - **requirements.txt** – Dependencies
-- **LICENSE** – MIT license
+- **LICENSE** – 
 - **.gitignore** – Standard Python ignores
 - **README.md** – This file
 

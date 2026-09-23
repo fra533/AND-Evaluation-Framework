@@ -20,9 +20,11 @@ def example_basic():
     print("=" * 70)
 
     evaluator = MultiMetricEvaluator(
-        predictions_file="example_predictions.json",
-        ground_truth_file="example_ground_truth.json",
-        verbose=True
+        predictions_file= r"C:\Users\franc\OneDrive - Alma Mater Studiorum Università di Bologna\Desktop\BOND-OC\WhoIsWho\out\res.json",
+        #example_predictions.json
+        ground_truth_file= r"C:\Users\franc\OneDrive - Alma Mater Studiorum Università di Bologna\Desktop\BOND-OC\WhoIsWho\bond\dataset\data\src\sna-valid\sna_valid_ground_truth.json",
+        #example_ground_truth.json
+        verbose=False
     )
 
     results = evaluator.evaluate()
@@ -44,9 +46,11 @@ def example_with_metadata():
     print("=" * 70)
 
     evaluator = MultiMetricEvaluator(
-        predictions_file="example_predictions.json",
-        ground_truth_file="example_ground_truth.json",
-        verbose=True
+        predictions_file= r"C:\Users\franc\OneDrive - Alma Mater Studiorum Università di Bologna\Desktop\BOND-OC\WhoIsWho\out\res.json",
+        #example_predictions.json
+        ground_truth_file= r"C:\Users\franc\OneDrive - Alma Mater Studiorum Università di Bologna\Desktop\BOND-OC\WhoIsWho\bond\dataset\data\src\sna-valid\sna_valid_ground_truth.json",
+        #example_ground_truth.json
+        verbose=False
     )
 
     # Run evaluation
@@ -104,9 +108,11 @@ def example_batch_evaluation():
         print(f"\n→ Evaluating: {exp['name']}")
 
         evaluator = MultiMetricEvaluator(
-            predictions_file="example_predictions.json",
-            ground_truth_file="example_ground_truth.json",
-            verbose=False  # Silence individual runs
+            predictions_file= r"C:\Users\franc\OneDrive - Alma Mater Studiorum Università di Bologna\Desktop\BOND-OC\WhoIsWho\out\res.json",
+            #example_predictions.json
+            ground_truth_file= r"C:\Users\franc\OneDrive - Alma Mater Studiorum Università di Bologna\Desktop\BOND-OC\WhoIsWho\bond\dataset\data\src\sna-valid\sna_valid_ground_truth.json",
+            #example_ground_truth.json
+            verbose=False
         )
 
         results = evaluator.evaluate()
@@ -165,8 +171,10 @@ def example_detailed_analysis():
     print("=" * 70)
 
     evaluator = MultiMetricEvaluator(
-        predictions_file="example_predictions.json",
-        ground_truth_file="example_ground_truth.json",
+        predictions_file= r"C:\Users\franc\OneDrive - Alma Mater Studiorum Università di Bologna\Desktop\BOND-OC\WhoIsWho\out\res.json",
+        #example_predictions.json
+        ground_truth_file= r"C:\Users\franc\OneDrive - Alma Mater Studiorum Università di Bologna\Desktop\BOND-OC\WhoIsWho\bond\dataset\data\src\sna-valid\sna_valid_ground_truth.json",
+        #example_ground_truth.json
         verbose=False
     )
 
