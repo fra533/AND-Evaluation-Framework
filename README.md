@@ -181,20 +181,13 @@ Counts publication pairs: are they co-clustered correctly?
 - **Recall**: Fraction of true links that were predicted
 - **Issue**: Quadratically sensitive to cluster size (large author lists dominate)
 
-### **B³ (Bagga & Baldwin, 2009)** — Instance-Level Quality
+### **B³ (Bagga & Baldwin, 1998)** — Instance-Level Quality
 
 For each publication, measures overlap between predicted and true cluster:
 - **Precision**: Average purity of each paper's predicted cluster
 - **Recall**: Average completeness of each paper's true author cluster
 - **Advantage**: Robust to cluster size imbalance
 - **Most reliable aggregate metric in AND**
-
-### **K-metric** — Asymmetric Penalties
-
-$$K = (1 - B³\text{-Precision}) \times (1 - B³\text{-Recall})$$
-
-Emphasizes both purity and completeness simultaneously.
-
 
 ### **Lumping Error (LE)** — Cluster Purity
 
@@ -240,11 +233,6 @@ results = evaluator.evaluate()
     "precision": 0.8821,  # ← Most important for AND
     "recall": 0.8145,
     "f1": 0.8468
-  },
-  "k_metric": {
-    "aap": 0.1179,  # Asymmetric Artifact Penalty
-    "acp": 0.1855,  # Asymmetric Cluster Penalty
-    "k": 0.8056
   },
   "structural": {
     "lumping_error": 0.0452,   # ← Watch this closely
@@ -383,6 +371,16 @@ If you use this framework in your research, please cite:
 ---
 
 ## References
+
+```bibtex
+@article{bagga1998entity,
+  title={Entity-based cross-document coreferencing using the Vector Space Model.},
+  author={Bagga, A.; Baldwin, B.},
+  journal={Proc. 36th Annual Meeting of the ACL and 17th COLING},
+  year={998}
+  url= {https://doi.org/10.3115/980845.980859}
+}
+
 
 
 ---
