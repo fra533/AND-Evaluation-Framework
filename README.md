@@ -50,7 +50,7 @@ The framework evaluates AND systems through **four integrated components**:
 
 ```bash
 git clone <repository-url>
-cd evaluate_BOND
+cd evaluate_AND
 pip install -r requirements.txt
 ```
 
@@ -101,7 +101,7 @@ Both predictions and ground-truth use the same JSON structure:
 ### Basic Evaluation
 
 ```python
-from evaluate_BOND import MultiMetricEvaluator, save_json
+from evaluate_AND import MultiMetricEvaluator, save_json
 
 evaluator = MultiMetricEvaluator(
     predictions_file="predictions.json",
@@ -346,7 +346,7 @@ Full results with detailed breakdown.
 
 ## Files
 
-- **evaluate_BOND.py** – Main evaluator (production code)
+- **evaluate_AND.py** – Main evaluator (production code)
 - **example_usage.py** – 4 complete usage scenarios
 - **example_predictions.json** – Test data (predictions)
 - **example_ground_truth.json** – Test data (ground truth)

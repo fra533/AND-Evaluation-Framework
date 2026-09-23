@@ -1,17 +1,13 @@
 """
-Author Name Disambiguation Evaluator for BOND.
+Author Name Disambiguation Evaluator
 
-Multi-metric evaluation framework implementing clustering metrics (Pairwise-F, B³, K-metric)
+Multi-metric evaluation framework implementing clustering metrics (Pairwise-F, B³)
 and structural error measures (Lumping Error, Splitting Error) as per Kim et al. (2019).
 
 Supports dynamic alignment of predictions with ground-truth for partial datasets
 (e.g., when ground-truth is available only for papers present in OpenCitations).
 
-References:
-    - Amigó, E., Gonzalo, J., Artiles, J., & Verdejo, F. (2009).
-      A comparison of extrinsic clustering evaluation metrics and an internal evaluation measure.
-      Information Processing & Management, 45(4), 422-430.
-    - Kim, K., et al. (2019). A large-scale author name disambiguation dataset.
+
 """
 
 from __future__ import annotations
@@ -82,8 +78,8 @@ class MultiMetricEvaluator:
     Implements:
     - Pairwise-F (link-based precision/recall)
     - B³ (Bagga & Baldwin, instance-level clustering metrics)
-    - K-metric (cluster homogeneity and completeness)
     - Structural errors (Lumping Error, Splitting Error)
+    - Composite score 
 
     Dynamic alignment: predictions and ground-truth are automatically aligned
     to only include papers present in both datasets. This avoids penalizing Recall
@@ -127,14 +123,13 @@ class MultiMetricEvaluator:
         1. Load predictions and ground-truth from JSON files.
         2. Find common author names in both datasets.
         3. For each name, align clusters (filter GT to only include papers in predictions).
-        4. Compute metrics: pairwise, B³, structural errors, K-metric.
+        4. Compute metrics: pairwise, B³, structural errors.
         5. Aggregate globally and compute composite score.
 
         Returns:
             Dictionary with keys:
             - "pairwise": {precision, recall, f1}
             - "b3": {precision, recall, f1}
-            - "k_metric": {aap, acp, k}
             - "structural": {lumping_error, splitting_error, score}
             - "composite_score": Weighted average (0.3 PW + 0.5 B³ + 0.2 Struct)
         """
@@ -338,10 +333,6 @@ class MultiMetricEvaluator:
         b3_r = g["b3r"] / n_instances
         b3_f1 = 2 * b3_p * b3_r / (b3_p + b3_r) if (b3_p + b3_r) > 0 else 0.0
 
-        # K-metric (Kim et al., 2019)
-        k_aap = 1.0 - b3_p  # Asymmetric Artifact Penalty
-        k_acp = 1.0 - b3_r  # Asymmetric Cluster Penalty
-        k_metric = (1.0 - k_aap) * (1.0 - k_acp)
 
         # Structural score
         num_names = max(g["num_names"], 1)
@@ -355,9 +346,6 @@ class MultiMetricEvaluator:
             },
             "b3": {
                 "precision": b3_p, "recall": b3_r, "f1": b3_f1
-            },
-            "k_metric": {
-                "aap": k_aap, "acp": k_acp, "k": k_metric
             },
             "structural": {
                 "lumping_error": le,
@@ -416,12 +404,6 @@ class MultiMetricEvaluator:
         print(f"   Precision: {b3.get('precision', 0):.4f}")
         print(f"   Recall:    {b3.get('recall', 0):.4f}")
         print(f"   F1:        {b3.get('f1', 0):.4f}")
-
-        k_met = self.results.get('k_metric', {})
-        print("\n[K-METRIC (Kim et al., 2019)]")
-        print(f"   K:         {k_met.get('k', 0):.4f}")
-        print(f"   AAP:       {k_met.get('aap', 0):.4f}")
-        print(f"   ACP:       {k_met.get('acp', 0):.4f}")
 
         struc = self.results.get('structural', {})
         print("\n[STRUCTURAL ERRORS]")
@@ -486,7 +468,6 @@ class MultiMetricEvaluator:
         # Prepare data row
         pw = r.get("pairwise", {})
         b3 = r.get("b3", {})
-        kmet = r.get("k_metric", {})
         struc = r.get("structural", {})
         stats = getattr(self, "stats", {})
 
@@ -501,9 +482,6 @@ class MultiMetricEvaluator:
             "B3_F1": b3.get("f1", 0),
             "B3_Prec": b3.get("precision", 0),
             "B3_Rec": b3.get("recall", 0),
-            "K_Metric_K": kmet.get("k", 0),
-            "K_Metric_AAP": kmet.get("aap", 0),
-            "K_Metric_ACP": kmet.get("acp", 0),
             "Lumping_Error": struc.get("lumping_error", 0),
             "Splitting_Error": struc.get("splitting_error", 0),
             "Structural_Score": struc.get("score", 0),
@@ -610,7 +588,6 @@ class MultiMetricEvaluator:
         return {
             "pairwise": {"precision": 0.0, "recall": 0.0, "f1": 0.0},
             "b3": {"precision": 0.0, "recall": 0.0, "f1": 0.0},
-            "k_metric": {"aap": 1.0, "acp": 1.0, "k": 0.0},
             "structural": {
                 "lumping_error": 1.0,
                 "splitting_error": 1.0,
