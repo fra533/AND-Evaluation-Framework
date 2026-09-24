@@ -187,7 +187,6 @@ def example_detailed_analysis():
     print("\n[Direct Access to Results]")
     print(f"Pairwise Precision: {results['pairwise']['precision']:.4f}")
     print(f"B³ Recall: {results['b3']['recall']:.4f}")
-    print(f"K-metric: {results['k_metric']['k']:.4f}")
     print(f"Structural Score: {results['structural']['score']:.4f}")
 
     # Save JSON
