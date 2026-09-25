@@ -222,13 +222,13 @@ Both $LE$ and $SE$ lie in $[0,1]$ by construction. We aggregate them into:
 $$\text{STRUCT} = 1 - \frac{\text{LE} + \text{SE}}{2}$$
 
 - **Range**: [0, 1]
-- **Meaning**: measures \emph{how many} distinct authors or fragments are incorrectly mixed or separated at the cluster level
+- **Meaning**: measures how many distinct authors or fragments are incorrectly mixed or separated at the cluster level
 - **0 = Perfect**: 
 - **1 = Worst**: 
 
 **Interpretation**:
 - Crucially, $S_{\text{struct}}$ is conceptually independent from B$^3$: while B$^3$ measures \emph{how much} of each instance's membership is correct, $S_{\text{struct}}$ measures \emph{how many} distinct authors or fragments are incorrectly mixed or separated at the cluster level. A model assigning all publications to a single cluster achieves $B^3_R=1$ but $LE\to1$ as $|\mathcal{C}_T|$ grows. Conversely, a model producing all singletons achieves $B^3_P=1$ but $SE\to1$.
-- 
+
 
 
 ---
