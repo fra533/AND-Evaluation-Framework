@@ -215,6 +215,20 @@ $$\text{SE} = \frac{1}{|T|} \sum_{T \in T'} \frac{\max(0, p(T) - 1)}{p(T)}$$
 - SE = 0.10 → Each author's publications are minimally fragmented
 - SE = 0.40 → Many authors split across multiple clusters
 
+### **Structural Score**
+
+$$\text{struct} = 1 - \frac{\text{LE} + \text{SE}}{2}$$
+
+- **Range**: 
+- **Meaning**:
+- **0 = Perfect**: 
+- **1 = Worst**: 
+
+**Interpretation**:
+- 
+- 
+
+
 ---
 
 ## Results Dictionary
