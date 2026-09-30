@@ -2,6 +2,11 @@
 
 This is an open-source Python implementation of the evaluation framework presented in *"A precision-driven evaluation protocol for Author Name Disambiguation"* (Cappelli, Colavizza, Peroni). It combines standard clustering metrics (Pairwise-F, B³) with structural error decomposition (Lumping Error, Splitting Error) to provide a comprehensive, interpretable assessment of Author Name Disambiguation (AND) systems.
 
+To cite this repository: 
+Fran98. (2026). fra533/AND-Evaluation-Framework: v1.0.0 (Version v1.0.0) [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.23055909
+
+To cite this paper: 
+
 ## Why This Framework?
 
 Standard clustering metrics (Pairwise-F, B³) evaluate aggregate quality but **don't distinguish between two qualitatively different failure modes**:
